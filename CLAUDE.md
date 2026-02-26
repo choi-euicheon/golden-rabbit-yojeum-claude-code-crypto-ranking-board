@@ -2,93 +2,43 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-This is a cryptocurrency ranking dashboard built with Next.js 15.2.4 and React 19. It displays real-time information about the top cryptocurrencies including price, market cap, volume, and 24h change.
-
-## Development Commands
+## 개발 명령어
 
 ```bash
-# Install dependencies (using pnpm)
-pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Run linting
-pnpm lint
+pnpm install          # 의존성 설치
+pnpm dev              # 개발 서버 실행
+pnpm build            # 프로덕션 빌드
+pnpm lint             # 린트 실행
+pnpm test             # 테스트 실행 (Jest 30 + Testing Library)
+pnpm test -- --testPathPattern="경로/테스트파일"  # 단일 테스트 파일 실행
 ```
 
-## Architecture & Key Components
+## 아키텍처
 
-### Core Structure
-- **Framework**: Next.js App Router (app directory structure)
-- **Main Component**: `crypto-ranking-board.tsx` - The primary component that renders the cryptocurrency ranking table
-- **Entry Point**: `app/page.tsx` - Simple wrapper that imports and renders the crypto ranking board
+Next.js 15.2.4 App Router (React 19) 기반 암호화폐 순위 대시보드. 한국어 UI (`lang="ko"`).
 
-### Data Flow
-- Currently uses mock data hardcoded in `crypto-ranking-board.tsx`
-- Planned integration with CoinAPI for real-time data (mentioned in code comments)
-- Data structure defined by `CoinData` interface:
-  ```typescript
-  interface CoinData {
-    rank: number
-    name: string
-    symbol: string
-    price: number
-    change24h: number
-    marketCap: number
-    volume: number
-    logo: string
-  }
-  ```
+### 데이터 흐름
 
-### UI Architecture
-- **Component Library**: shadcn/ui (Radix UI primitives + Tailwind CSS)
-- **Styling**: Tailwind CSS with custom theme configuration
-- **Theme**: Dark mode by default with CSS variables for theming
-- **Icons**: Lucide React icons
-- **Responsive Design**: Mobile-first approach with hidden columns on smaller screens
+`app/page.tsx` → `crypto-ranking-board.tsx`(루트 레벨) 임포트 → 8개 암호화폐 목데이터를 테이블로 렌더링. 실제 API 연동은 없음 (푸터에 "Powered by CoinAPI" 표시되지만 미구현). `CoinData` 인터페이스와 `mockCoinData` 배열이 `crypto-ranking-board.tsx`에 정의되어 있음.
 
-### Key Technical Decisions
-- **TypeScript**: Strict mode enabled
-- **Path Aliases**: `@/` prefix for imports (configured in tsconfig.json)
-- **Build Configuration**: Currently has ESLint and TypeScript errors ignored during builds (see next.config.mjs)
-- **Image Handling**: Unoptimized images enabled in Next.js config
+### UI 스택
 
-## Important Notes
+- **shadcn/ui** 컴포넌트가 `components/ui/`에 다수 존재하나, 실제 사용 중인 것은 `Card`, `CardContent`, `CardHeader`, `CardTitle`, `Badge`뿐.
+- **Tailwind CSS** 다크 테마 고정 (`bg-gray-950`). 테마 설정은 `tailwind.config.ts`, 글로벌 스타일은 `app/globals.css`.
+- **반응형**: 시가총액은 `md` 이상, 거래량은 `lg` 이상에서만 표시.
+- **경로 별칭**: `@/`가 프로젝트 루트에 매핑됨.
 
-1. **No Testing Framework**: Currently no test setup. When adding tests, you'll need to configure a testing framework.
+### 주요 파일
 
-2. **Build Warnings Suppressed**: Both TypeScript and ESLint errors are ignored during builds. Consider enabling these checks:
-   ```javascript
-   // next.config.mjs
-   eslint: { ignoreDuringBuilds: false }
-   typescript: { ignoreBuildErrors: false }
-   ```
+| 파일 | 역할 |
+|------|------|
+| `crypto-ranking-board.tsx` | 핵심 컴포넌트: 코인 데이터, 포맷 유틸 (`formatNumber`, `formatPrice`), 테이블 렌더링 |
+| `app/page.tsx` | 진입점, 메인 컴포넌트 래핑 |
+| `app/layout.tsx` | 루트 레이아웃, 한국어 메타데이터 |
+| `next.config.mjs` | 빌드 시 ESLint·TypeScript 에러 무시, 이미지 최적화 비활성화 |
+| `jest.config.mjs` | Jest 설정 (ts-jest, jsdom, 경로 별칭 지원) |
 
-3. **Mock Data**: The app currently displays static mock data for 8 cryptocurrencies. Real-time data integration is pending.
+## 빌드 설정 참고사항
 
-4. **UI Components**: Extensive UI component library available in `components/ui/`. These are shadcn/ui components that can be customized.
-
-## Common Tasks
-
-### Adding a New Cryptocurrency
-1. Add the coin logo to `public/coin/[coinname].png`
-2. Update the `coinData` array in `crypto-ranking-board.tsx`
-
-### Modifying the Table Display
-- Table structure is in `crypto-ranking-board.tsx`
-- Responsive behavior controlled by `hidden md:table-cell` classes
-- Number formatting handled by `formatNumber` and `formatPrice` utility functions
-
-### Styling Changes
-- Global styles: `app/globals.css`
-- Theme configuration: `tailwind.config.ts`
-- Component-specific styles use Tailwind utility classes
+- `next.config.mjs`에서 빌드 시 ESLint와 TypeScript 에러를 모두 무시하도록 설정되어 있음 (`ignoreDuringBuilds: true`, `ignoreBuildErrors: true`).
+- 코인 로고는 `public/coin/`에 저장 (대부분 `.png`, USDC만 `.webp`).
